@@ -43,8 +43,15 @@ void HttpServer::StartListen(){
             int val = 1;
             setsockopt(new_socket_fd, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof val);
             std::cout<<"client connected with socket_id :"<<new_socket_fd<<std::endl;    
-            send(new_socket_fd, "Hello, world!\n", 13, 0);
         }
     }   
 }
 
+void HttpServer::GET(char* ROOT_PATH){
+
+
+}
+
+void HttpServer::VerbResolver(){
+    
+}

@@ -17,6 +17,7 @@ class HttpServer{
         
         HttpServer(char* port,char* PROJECT_ROOT);
         void StartListen();
+        void VerbResolver();
         void GET(char* path);
 
 };
