@@ -20,13 +20,14 @@ INCLUDEDIRS	:= $(shell find $(INCLUDE) -type d)
 LIBDIRS		:= $(shell find $(LIB) -type d)
 endif
 
-CINCLUDES	:= $(patsubst %,-I%, $(INCLUDEDIRS:%/=%))
-CLIBS		:= $(patsubst %,-L%, $(LIBDIRS:%/=%))
+CINCLUDES	:= $(patsubst %,-I %, $(INCLUDEDIRS:%/=%))
+# CINCLUDES	:= include
+CLIBS		:= $(patsubst %,-L %, $(LIBDIRS:%/=%))
 
 SOURCES		:= $(wildcard $(patsubst %,%/*.cpp, $(SOURCEDIRS)))
 OBJECTS		:= $(SOURCES:.cpp=.o)
 
-all: $(BIN)/$(EXECUTABLE)
+all: MAIN
 
 .PHONY: clean
 clean:
@@ -37,7 +38,8 @@ clean:
 run: all
 	./$(BIN)/$(EXECUTABLE)
 
-$(BIN)/$(EXECUTABLE): $(OBJECTS)
+MAIN: $(SOURCES)
 	$(CC) $(CFLAGS) $(CINCLUDES) $(CLIBS) $^ -o $@ $(LIBRARIES)
+	
 ec:
 	echo $(OBJECTS)
