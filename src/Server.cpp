@@ -3,12 +3,14 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <netinet/in.h>
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr sockaddr;
 
 HttpServer::HttpServer(char* port ,char* project_root){
+    std::cout<<"Started Server"<<port;
     PORT_NUMBER = atoi(port);
     PROJECT_ROOT = project_root;
     
@@ -16,7 +18,7 @@ HttpServer::HttpServer(char* port ,char* project_root){
     if(socket_listen_fd < 0 ){
         std::cout<<"couldn't open a socket!"<<"\n";
     }
-
+    std::cout<<"socket binded succesfully! \n opened connection \n";
     bzero(( char*) &server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -30,11 +32,15 @@ HttpServer::HttpServer(char* port ,char* project_root){
 
 void HttpServer::StartListen(){
     socklen_t clielen = sizeof(client_addr);
-    listen(socket_listen_fd,1);//can't support more than one any ways
-    new_socket_fd = accept(socket_listen_fd,(sockaddr *)&client_addr,&clielen);
-    int val = 1;
-    setsockopt(new_socket_fd, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof val);
-    std::cout<<"client connected with socket_id :"<<new_socket_fd<<std::endl;
+    std::cout<<"started Listening at port"<<PORT_NUMBER;
+    listen(socket_listen_fd,10);//can't support more than one any ways
+    while(1){
+        new_socket_fd = accept(socket_listen_fd,(sockaddr *)&client_addr,&clielen);
+        if(fork() == 1){
+            int val = 1;
+            setsockopt(new_socket_fd, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof val);
+            std::cout<<"client connected with socket_id :"<<new_socket_fd<<std::endl;    
+        }
+    }   
 }
 
-//TODO:check if you can create a new process every time a new client is added to queue basically try simultaneous connections

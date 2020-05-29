@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include "server.h"
+
 typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr sockaddr;
 
