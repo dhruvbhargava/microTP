@@ -9,15 +9,15 @@ typedef struct sockaddr sockaddr;
 
 class HttpServer{
     public:
-        int socket_listen_fd,PORT_NUMBER;
+        int socket_listen_fd,PORT_NUMBER,new_socket_fd;
         sockaddr_in server_addr,client_addr;
         char* PROJECT_ROOT;
         char client_buffer[256];
         socklen_t clielen;
         HttpServer(char* port,char* project_root);
-        void StartListen();
-        void RequestResolver(char* requestBuffer);
-        void GET(char* path);
+        void startListen();
+        void requestResolver(char* requestBuffer);
+        void GETResponse(char* path);
         
 
 

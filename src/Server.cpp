@@ -1,4 +1,5 @@
 #include "Server.h"
+#include "Httpheaders.h"
 #include <iostream>
 #include <string.h>
 #include <sys/socket.h>
@@ -43,31 +44,37 @@ void HttpServer::startListen()
 {
     socklen_t clielen = sizeof(client_addr);
     std::cout << "started Listening at port \n";
-    int new_socket_fd;
     listen(socket_listen_fd, 10); //can't support more than one any ways
     pid_t pid = 1;
-    while (1){
-        new_socket_fd = accept(socket_listen_fd,(sockaddr*)&client_addr,&clielen);
+    while (1)
+    {
+        new_socket_fd = accept(socket_listen_fd, (sockaddr *)&client_addr, &clielen);
         pid = fork();
-        if(pid == 0){
+        if (pid == 0)
+        {
+            // close(socket_listen_fd);
             break;
         }
-        close(new_socket_fd);
-        std::cout<<"Parent"<<std::endl;
-        // wait(NULL);
+        // close(new_socket_fd);
+        std::cout << "Parent" << std::endl;
     }
-    if(pid == 0){
+    if (pid == 0)
+    {
+        while(1){
         char requestBuffer[256];
-        std::cout<<"child"<<std::endl;
-        read(new_socket_fd,requestBuffer,strlen(requestBuffer));       
+        std::cout << "child" << std::endl;
+        read(new_socket_fd, requestBuffer, sizeof(requestBuffer));
         requestResolver(requestBuffer);
-
+        }
     }
 }
 
 void HttpServer::GETResponse(char *ROOT_PATH)
 {
-    
+    char response[] = "HTTP/1.1 200 OK\nConnection: Keep-Alive\nKeep-Alive: timeout=3600, max=200\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+    std::cout << response << std::endl;
+
+    write(new_socket_fd, response, strlen(response));
 }
 
 void HttpServer::requestResolver(char *requestBuffer)
@@ -75,22 +82,19 @@ void HttpServer::requestResolver(char *requestBuffer)
     std::cout << "string buffer contains the following request:" << std::endl;
     std::cout << std::endl;
     std::cout << requestBuffer << std::endl;
-    std::stringstream check1(requestBuffer);  
+    std::stringstream check1(requestBuffer);
     std::string intermediate;
     std::vector<std::string> Header;
-    while(std::getline(check1, intermediate, ' ')) 
-    { 
-        Header.push_back(intermediate); 
-    } 
-    std::string Verb = Header[0];
-    
-    if(Verb.compare("GET") == 0){
-        GETResponse(PROJECT_ROOT);
+    while (std::getline(check1, intermediate, ' '))
+    {
+        Header.push_back(intermediate);
     }
-    
+    std::string Verb = Header[0];
+
+    std::cout << "IN GET" << std::endl;
+    GETResponse(PROJECT_ROOT);
 }
 
-    
 //kill inactive processes using polling the only way for keep alive sockets
 
 // #define check(expr)       \
