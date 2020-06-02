@@ -60,20 +60,40 @@ void HttpServer::startListen()
     }
     if (pid == 0)
     {
-        while(1){
-        char requestBuffer[256];
-        std::cout << "child" << std::endl;
-        read(new_socket_fd, requestBuffer, sizeof(requestBuffer));
-        requestResolver(requestBuffer);
+        char requestBuffer[62000];
+        while (1)
+        {   
+            std::cout << "child" << std::endl;
+            headerParse(requestBuffer);
+            requestResolver(requestBuffer);
         }
+        close(new_socket_fd);
     }
+}
+
+void HttpServer::headerParse(char *requestBuffer)
+{
+    int index = 0;
+    int r_c = 0;
+    std::cout<<"buffer contains"<<std::endl;
+    std::cout<<requestBuffer<<std::endl;
+    while (true) {
+        std::cout<<"current r count = "<<r_c<<std::endl;
+        read(new_socket_fd, requestBuffer+index, 1);  
+        std::cout<<"current index buffer item"<<requestBuffer[index]<<std::endl;
+        if (requestBuffer[index] ==  '\r') {
+            r_c++;
+            if(r_c == 2) break;
+        }
+        index++;
+   }
+   std::cout<<"finaa  bruh"<<std::endl;
 }
 
 void HttpServer::GETResponse(char *ROOT_PATH)
 {
-    char response[] = "HTTP/1.1 200 OK\nConnection: Keep-Alive\nKeep-Alive: timeout=3600, max=200\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+    char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\nHello world!";
     std::cout << response << std::endl;
-
     write(new_socket_fd, response, strlen(response));
 }
 
@@ -94,27 +114,3 @@ void HttpServer::requestResolver(char *requestBuffer)
     std::cout << "IN GET" << std::endl;
     GETResponse(PROJECT_ROOT);
 }
-
-//kill inactive processes using polling the only way for keep alive sockets
-
-// #define check(expr)       \
-//     if (!(expr))          \
-//     {                     \
-//         perror(#expr);    \
-//         kill(0, SIGTERM); \
-//     }
-
-// void enable_keepalive(int sock)
-// {
-//     int yes = 1;
-//     check(setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int)) != -1);
-
-//     int idle = 1;
-//     check(setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(int)) != -1);
-
-//     int interval = 1;
-//     check(setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(int)) != -1);
-
-//     int maxpkt = 10;
-//     check(setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(int)) != -1);
-// }

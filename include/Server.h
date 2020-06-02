@@ -18,8 +18,8 @@ class HttpServer{
         void startListen();
         void requestResolver(char* requestBuffer);
         void GETResponse(char* path);
+        void headerParse(char* requestBuffer);
         
 
 
 };
-
