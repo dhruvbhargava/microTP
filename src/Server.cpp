@@ -49,6 +49,7 @@ void HttpServer::startListen()
     while (1)
     {
         new_socket_fd = accept(socket_listen_fd, (sockaddr *)&client_addr, &clielen);
+        // std::cout << "CONNN" << std::endl;
         pid = fork();
         if (pid == 0)
         {
@@ -63,7 +64,7 @@ void HttpServer::startListen()
         char requestBuffer[62000];
         while (1)
         {   
-            std::cout << "child" << std::endl;
+            std::cout << getpid() << std::endl;
             headerParse(requestBuffer);
             requestResolver(requestBuffer);
         }
@@ -76,15 +77,17 @@ void HttpServer::headerParse(char *requestBuffer)
     int index = 0;
     int r_c = 0;
     std::cout<<"buffer contains"<<std::endl;
-    std::cout<<requestBuffer<<std::endl;
+    // std::cout<<requestBuffer<<std::endl;
     while (true) {
-        std::cout<<"current r count = "<<r_c<<std::endl;
+        // std::cout<<"current r count = "<<r_c<<std::endl;
         read(new_socket_fd, requestBuffer+index, 1);  
-        std::cout<<"current index buffer item"<<requestBuffer[index]<<std::endl;
-        if (requestBuffer[index] ==  '\r') {
-            r_c++;
-            if(r_c == 2) break;
+        // std::cout<<"current index buffer item"<<requestBuffer[index]<<std::endl;
+        if (index>2 && requestBuffer[index] ==  '\r' && requestBuffer[index-2]=='\r') {
+            // r_c++;
+            break;
+            // if(r_c == 2) break;
         }
+        
         index++;
    }
    std::cout<<"finaa  bruh"<<std::endl;
@@ -92,13 +95,14 @@ void HttpServer::headerParse(char *requestBuffer)
 
 void HttpServer::GETResponse(char *ROOT_PATH)
 {
-    char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\nHello world!";
+    char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\n\r\nHello world!";
     std::cout << response << std::endl;
     write(new_socket_fd, response, strlen(response));
 }
 
 void HttpServer::requestResolver(char *requestBuffer)
 {
+    std::cout << "pid  " <<getpid() << std::endl;
     std::cout << "string buffer contains the following request:" << std::endl;
     std::cout << std::endl;
     std::cout << requestBuffer << std::endl;
