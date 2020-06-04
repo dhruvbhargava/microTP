@@ -16,9 +16,9 @@ class HttpServer{
         socklen_t clielen;
         HttpServer(char* port,char* project_root);
         void startListen();
-        void requestResolver(char* requestBuffer);
-        void GETResponse(char* path);
-        void headerParse(char* requestBuffer);
+        void requestResolver(std::string requestBuffer);
+        void GET(const char* filepath,bool close);
+        std::string headerParse();
         
 
 

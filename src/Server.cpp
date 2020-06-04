@@ -1,6 +1,6 @@
 #include "Server.h"
-#include "Httpheaders.h"
 #include <iostream>
+#include "HttpHeaders.h"
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -44,65 +44,59 @@ void HttpServer::startListen()
 {
     socklen_t clielen = sizeof(client_addr);
     std::cout << "started Listening at port \n";
-    listen(socket_listen_fd, 10); //can't support more than one any ways
+    listen(socket_listen_fd, 5); //a waiting queue size of 5 will suffice since each client is being served by a different process
     pid_t pid = 1;
     while (1)
     {
         new_socket_fd = accept(socket_listen_fd, (sockaddr *)&client_addr, &clielen);
-        // std::cout << "CONNN" << std::endl;
         pid = fork();
         if (pid == 0)
         {
-            // close(socket_listen_fd);
             break;
         }
-        // close(new_socket_fd);
         std::cout << "Parent" << std::endl;
     }
     if (pid == 0)
     {
-        char requestBuffer[62000];
+
         while (1)
-        {   
-            std::cout << getpid() << std::endl;
-            headerParse(requestBuffer);
+        {
+            std::string requestBuffer = headerParse();
             requestResolver(requestBuffer);
         }
         close(new_socket_fd);
     }
 }
 
-void HttpServer::headerParse(char *requestBuffer)
+std::string HttpServer::headerParse()
 {
+    char requestBuffer[62000];
     int index = 0;
     int r_c = 0;
-    std::cout<<"buffer contains"<<std::endl;
+    std::cout << "buffer contains" << std::endl;
     // std::cout<<requestBuffer<<std::endl;
-    while (true) {
+    while (true)
+    {
         // std::cout<<"current r count = "<<r_c<<std::endl;
-        read(new_socket_fd, requestBuffer+index, 1);  
+        read(new_socket_fd, requestBuffer + index, 1);
         // std::cout<<"current index buffer item"<<requestBuffer[index]<<std::endl;
-        if (index>2 && requestBuffer[index] ==  '\r' && requestBuffer[index-2]=='\r') {
+        if (index > 2 && requestBuffer[index] == '\r' && requestBuffer[index - 2] == '\r')
+        {
             // r_c++;
             break;
             // if(r_c == 2) break;
         }
-        
+
         index++;
-   }
-   std::cout<<"finaa  bruh"<<std::endl;
+    }
+    std::cout << "finaa  bruh" << std::endl;
+    std::string reqBuff = requestBuffer;
+    return reqBuff;
 }
 
-void HttpServer::GETResponse(char *ROOT_PATH)
+void HttpServer::requestResolver(std::string requestBuffer)
 {
-    char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\n\r\nHello world!";
-    std::cout << response << std::endl;
-    write(new_socket_fd, response, strlen(response));
-}
-
-void HttpServer::requestResolver(char *requestBuffer)
-{
-    std::cout << "pid  " <<getpid() << std::endl;
+    std::cout << "pid  " << getpid() << std::endl;
     std::cout << "string buffer contains the following request:" << std::endl;
     std::cout << std::endl;
     std::cout << requestBuffer << std::endl;
@@ -115,6 +109,12 @@ void HttpServer::requestResolver(char *requestBuffer)
     }
     std::string Verb = Header[0];
 
-    std::cout << "IN GET" << std::endl;
-    GETResponse(PROJECT_ROOT);
+    if (Header[0].compare("GET") == 0)
+    {
+        //dummy path
+        std::cout << "I was here" << std::endl;
+        std::string request_path = Header[1];
+        const char *req = Header[1].c_str();
+        GET(req, false);
+    }
 }
