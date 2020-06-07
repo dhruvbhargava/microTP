@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
 	port = argv[1];
 	project_root = argv[2];
 	HttpServer server = HttpServer(port,project_root);
-	std::cout<<"What up?"<<std::endl;
 	server.startListen();
 
 }

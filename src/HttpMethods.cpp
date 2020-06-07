@@ -1,5 +1,5 @@
 #include "Server.h"
-#include "HttpHeaders.h"
+#include "ResponseHeaders.h"
 #include <iostream>
 #include <sys/stat.h>
 #include <fstream>
@@ -31,7 +31,7 @@ void HttpServer::GET(const char *filepath, bool close)
     std::cout<<full_path<<std::endl;
     if (!exists(full_path))
     {
-        char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 12\r\n\r\n<!DOCTYPE html> <html><h1>404 NOT FOUND</h1></html>";
+        char response[] = "HTTP/1.1 404 NOT FOUND\r\nContent-Type: text/plain\r\nContent-Length: 3\r\n\r\n404";
         std::cout << response << std::endl;
         write(new_socket_fd, response, strlen(response));
         return;
