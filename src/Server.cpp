@@ -1,6 +1,7 @@
 #include "Server.h"
 #include <iostream>
-#include "HttpHeaders.h"
+#include "ResponseHeaders.h"
+#include "Parser.h"
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -43,7 +44,7 @@ HttpServer::HttpServer(char *port, char *project_root)
 void HttpServer::startListen()
 {
     socklen_t clielen = sizeof(client_addr);
-    std::cout << "started Listening at port \n";
+    std::cout << "started Listening for requests\n";
     listen(socket_listen_fd, 5); //a waiting queue size of 5 will suffice since each client is being served by a different process
     pid_t pid = 1;
     while (1)
@@ -58,63 +59,43 @@ void HttpServer::startListen()
     }
     if (pid == 0)
     {
-
         while (1)
         {
-            std::string requestBuffer = headerParse();
+            std::string requestBuffer = feedBuffer();
             requestResolver(requestBuffer);
         }
         close(new_socket_fd);
     }
 }
 
-std::string HttpServer::headerParse()
+std::string HttpServer::feedBuffer()
 {
     char requestBuffer[62000];
     int index = 0;
-    int r_c = 0;
-    std::cout << "buffer contains" << std::endl;
+    // std::cout << "buffer contains" << std::endl;
     // std::cout<<requestBuffer<<std::endl;
     while (true)
     {
-        // std::cout<<"current r count = "<<r_c<<std::endl;
         read(new_socket_fd, requestBuffer + index, 1);
-        // std::cout<<"current index buffer item"<<requestBuffer[index]<<std::endl;
         if (index > 2 && requestBuffer[index] == '\r' && requestBuffer[index - 2] == '\r')
         {
-            // r_c++;
-            break;
-            // if(r_c == 2) break;
-        }
 
+            break;
+        }
         index++;
     }
-    std::cout << "finaa  bruh" << std::endl;
     std::string reqBuff = requestBuffer;
     return reqBuff;
 }
 
 void HttpServer::requestResolver(std::string requestBuffer)
 {
-    std::cout << "pid  " << getpid() << std::endl;
-    std::cout << "string buffer contains the following request:" << std::endl;
     std::cout << std::endl;
-    std::cout << requestBuffer << std::endl;
-    std::stringstream check1(requestBuffer);
-    std::string intermediate;
-    std::vector<std::string> Header;
-    while (std::getline(check1, intermediate, ' '))
+    Request Header = parse(requestBuffer);
+    std::cout << Header.request_method << std::endl;
+    if (Header.request_method.compare("GET") == 0)
     {
-        Header.push_back(intermediate);
-    }
-    std::string Verb = Header[0];
-
-    if (Header[0].compare("GET") == 0)
-    {
-        //dummy path
-        std::cout << "I was here" << std::endl;
-        std::string request_path = Header[1];
-        const char *req = Header[1].c_str();
+        const char *req = Header.url.c_str();
         GET(req, false);
     }
 }
